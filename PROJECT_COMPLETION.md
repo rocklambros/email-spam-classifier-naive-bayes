@@ -1,5 +1,8 @@
 # Project Finalization Summary
 
+## COMP 3009: Graduate Project
+## Student: Kyriakos "Rock" Lambros
+## Professor: Dr. Ahmed Abdeen Hamed
 ## Academic Project Completion Status ✅
 
 ### Core Components Delivered:
