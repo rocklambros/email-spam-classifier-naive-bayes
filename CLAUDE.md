@@ -26,12 +26,12 @@ Both datasets contain 12 fields:
 
 ## Development Commands
 
-### Data Generation
+### Data Generation and Analysis
 ```bash
-# Generate new synthetic dataset
+# Generate new synthetic dataset (overwrites existing synthetic_email_dataset.csv)
 python3 generate_synthetic_email_data.py
 
-# Analyze dataset statistics
+# Quick dataset analysis
 python3 -c "
 import csv
 from collections import Counter
@@ -41,17 +41,27 @@ with open('synthetic_email_dataset.csv', 'r') as f:
     print(f'Total: {len(rows)}')
     spam_count = sum(1 for r in rows if r['Spam Detection'] == 'Moderate')
     print(f'Spam: {spam_count}, Legitimate: {len(rows)-spam_count}')
+    status_dist = Counter(r['Status'] for r in rows)
+    print('Status distribution:', dict(status_dist.most_common(3)))
+"
+
+# Test synthetic data generator without overwriting files
+python3 -c "
+from generate_synthetic_email_data import SyntheticEmailGenerator
+gen = SyntheticEmailGenerator(seed=123)
+sample_data = gen.generate_dataset(num_records=100)
+gen.print_statistics(sample_data)
 "
 ```
 
-### Python Environment
+### Environment Setup
 ```bash
-# Create virtual environment
+# Virtual environment (optional - no external dependencies needed)
 python3 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# No external dependencies required - uses Python standard library only
-# Per assignment requirements: csv, random, datetime, re, typing
+# Verify Python version compatibility
+python3 --version  # Requires Python 3.7+
 ```
 
 ## Assignment Requirements
@@ -160,15 +170,36 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 - Mathematical justification for design decisions
 - Performance analysis with statistical significance
 
-## Development Tips
+## Implementation Guidance
 
-### Feature Extraction Best Practices
-- Extract meaningful features from text fields for better classification
-- Consider TF-IDF style calculations using only built-in libraries
-- Implement stemming/normalization manually if needed for assignment requirements
+### Key Architecture Points
+- **Single File Implementation**: The `SyntheticEmailGenerator` class is self-contained with all functionality
+- **Statistical Preservation**: Uses probability sampling to maintain original dataset distributions
+- **Academic Constraints**: Deliberately uses only Python standard library (csv, random, datetime, re, typing)
+- **Reproducible Results**: Fixed seed (42) ensures consistent output for academic evaluation
 
-### Implementation Notes
-- Use log probabilities to avoid numerical underflow
-- Implement Laplace smoothing for robust probability estimation
-- Handle edge cases (empty features, unknown words)
-- Maintain academic code quality standards throughout
+### When Working with This Codebase
+- **Modifying Data Generation**: Edit the class methods in `generate_synthetic_email_data.py` for different distributions
+- **Testing Changes**: Use the test command above to verify modifications without overwriting datasets
+- **Adding Features**: Extend the `generate_record()` method for additional email attributes
+- **Dataset Analysis**: Both original and synthetic datasets follow identical 12-field schema
+
+### Common Tasks
+```bash
+# Compare original vs synthetic distributions
+python3 -c "
+import csv
+orig = list(csv.DictReader(open('email_dataset.csv')))
+synth = list(csv.DictReader(open('synthetic_email_dataset.csv')))
+print(f'Original spam: {sum(1 for r in orig if r[\"Spam Detection\"] == \"Moderate\")}')
+print(f'Synthetic spam: {sum(1 for r in synth if r[\"Spam Detection\"] == \"Moderate\")}')
+"
+
+# Extract features for Naive Bayes implementation
+python3 -c "
+import csv
+data = list(csv.DictReader(open('synthetic_email_dataset.csv')))
+subjects = [r['Subject'] for r in data if r['Spam Detection'] == 'Moderate'][:5]
+print('Sample spam subjects:', subjects)
+"
+```
